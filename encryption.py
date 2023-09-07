@@ -7,7 +7,7 @@ class Encryption:
         
     # use BCRYPT (a key derivation func) to derive a key
     def generate_derived_key(self, password, salt):
-        
+        pass
     # generate random symmetric key
     def generate_random_key(self, key_length):
         pass
