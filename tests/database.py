@@ -23,10 +23,41 @@ def create_database(name, conn):
     # execute statement
     cursor.execute(sql)
     # close connection?
-    conn.close()
+    #conn.close()
     print("DB created successfully!")
 
-def create_table():
-    pass
+def create_table(conn):
+    cursor = conn.cursor()
+    
+    queries = (
+    """
+    CREATE TABLE credentials (
+	    credID INTEGER PRIMARY KEY,
+	    website VARCHAR(120)
+    )
+    """,
+    """ 
+    CREATE TABLE usernames (
+	    userID INTEGER PRIMARY KEY,
+	    username VARCHAR(50),
+	    credID INTEGER FOREIGN KEY REFERENCES credentials(credID)
+    )
+    """,
+    """
+    CREATE TABLE passwords (
+	    passID INTEGER PRIMARY KEY,
+	    password VARCHAR(120),
+	    userID INTEGER FOREIGN KEY REFERENCES usernames(userID),
+	    credID INTEGER FOREIGN KEY REFERENCES credentials(credID)
+    )
+    """)
+    
+    # execute queries
+    for query in queries:
+        cursor.execute(query)
+    conn.commit()
+    print("tables successfully created!")
+
+    
     
     
