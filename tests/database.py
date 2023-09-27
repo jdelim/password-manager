@@ -40,17 +40,22 @@ def create_table(conn):
     CREATE TABLE usernames (
 	    userID INTEGER PRIMARY KEY,
 	    username VARCHAR(50),
-	    credID INTEGER FOREIGN KEY REFERENCES credentials(credID)
+	    credID INTEGER,
+        credID FOREIGN KEY REFERENCES credentials(credID) 
     )
     """,
+    #FIXME 
     """
     CREATE TABLE passwords (
 	    passID INTEGER PRIMARY KEY,
 	    password VARCHAR(120),
-	    userID INTEGER FOREIGN KEY REFERENCES usernames(userID),
-	    credID INTEGER FOREIGN KEY REFERENCES credentials(credID)
+	    userID INTEGER,
+        credID INTEGER,
+        userID FOREIGN KEY REFERENCES usernames(userID),
+	    credID FOREIGN KEY REFERENCES credentials(credID)
     )
     """)
+    #FIXME
     
     # execute queries
     for query in queries:
