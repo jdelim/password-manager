@@ -4,6 +4,7 @@ import bcrypt
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
     
 # use pbkdf2 to generate a key from password 
 def generate_derived_key(password, salt):
@@ -16,9 +17,12 @@ def generate_derived_key(password, salt):
     )
     
     # derive key from password
+
     dkey = kdf.derive(password.encode())
     
-    return dkey
+    encoded_data = base64.urlsafe_b64encode(dkey)
+    
+    return encoded_data
 
 # generate random symmetric key
 def generate_random_key(): # default key value is 32 bytes (256 bits), Fernet uses AES-CTR
