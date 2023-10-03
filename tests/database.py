@@ -41,21 +41,21 @@ def create_table(conn):
 	    userID INTEGER PRIMARY KEY,
 	    username VARCHAR(50),
 	    credID INTEGER,
-        credID FOREIGN KEY REFERENCES credentials(credID) 
+        FOREIGN KEY (credID) REFERENCES credentials(credID) 
     )
     """,
-    #FIXME 
+    
     """
     CREATE TABLE passwords (
 	    passID INTEGER PRIMARY KEY,
 	    password VARCHAR(120),
 	    userID INTEGER,
         credID INTEGER,
-        userID FOREIGN KEY REFERENCES usernames(userID),
-	    credID FOREIGN KEY REFERENCES credentials(credID)
+        FOREIGN KEY (userID) REFERENCES usernames(userID),
+	    FOREIGN KEY (credID) REFERENCES credentials(credID)
     )
     """)
-    #FIXME
+    
     
     # execute queries
     for query in queries:
