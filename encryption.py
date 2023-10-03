@@ -55,7 +55,7 @@ def decrypt_symm_key(ekey, dkey):
          return rkey
     except Exception as e:
         # invalid key/data
-        print("DECRYPTION ERROR OH NO!", e)
+        print("DECRYPTION ERROR!", e)
         return None
 
 # use to encrypt user's data using the symmetric key
