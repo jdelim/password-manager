@@ -1,21 +1,24 @@
 from encryption import *
+from database import *
 
 def main():
     
-    master_password = input("Please enter your master password: ")
+    master_password = getpass.getpass(prompt="Enter your master password: ")
+    #master_password = input("Please enter your master password: ")
     print(f"Your master password is: {master_password} ")
 
     # generate random key for user after "Login"
     rkey = generate_random_key()
     salt = bcrypt.gensalt()    
-    print(f"\nThe symmetric key (rkey) that will encrypt your data is: {rkey}")
+    #print(f"Salt is: {salt}")
+    #print(f"\nThe symmetric key (rkey) that will encrypt your data is: {rkey}")
     
     # Get dkey and ekey
     dkey = generate_derived_key(master_password, salt)
-    print(f"\nYour derived key from your master password is: {dkey}")
+    #print(f"\nYour derived key from your master password is: {dkey}")
     
     ekey = encrypt_symm_key(rkey, dkey)
-    print(f"\nYour encrypted symmetric key (ekey) using dkey is: {ekey}")
+    #print(f"\nYour encrypted symmetric key (ekey) using dkey is: {ekey}")
     
     
     # Ask user for passwords

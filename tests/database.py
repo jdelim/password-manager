@@ -1,4 +1,6 @@
 import psycopg2
+import bcrypt
+from encryption import *
 
 # FIXME - will establish class later
 
@@ -33,13 +35,13 @@ def create_table(conn):
     """
     CREATE TABLE credentials (
 	    credID INTEGER PRIMARY KEY,
-	    website VARCHAR(120)
+	    website VARCHAR(500)
     )
     """,
     """ 
     CREATE TABLE usernames (
 	    userID INTEGER PRIMARY KEY,
-	    username VARCHAR(50),
+	    username VARCHAR(500),
 	    credID INTEGER,
         FOREIGN KEY (credID) REFERENCES credentials(credID) 
     )
@@ -48,7 +50,7 @@ def create_table(conn):
     """
     CREATE TABLE passwords (
 	    passID INTEGER PRIMARY KEY,
-	    password VARCHAR(120),
+	    password VARCHAR(500),
 	    userID INTEGER,
         credID INTEGER,
         FOREIGN KEY (userID) REFERENCES usernames(userID),
@@ -56,12 +58,47 @@ def create_table(conn):
     )
     """)
     
-    
     # execute queries
     for query in queries:
         cursor.execute(query)
     conn.commit()
     print("tables successfully created!")
+    
+# create DB that stores usernames and EKEYS
+def create_ekey_storage(conn):
+    cursor = conn.cursor()
+    
+    query = """CREATE TABLE ekeys (
+        username VARCHAR(500) PRIMARY KEY,
+        ekey VARCHAR(500),
+        salt VARCHAR(500)
+    )
+        """
+    cursor.execute(query)
+    conn.commit()
+    print("ekey storage created successfully!")
+    
+def insert_ekey(username, password, conn):
+    cursor = conn.cursor()
+    
+    # generate salt to store
+    salt = bcrypt.gensalt()
+    # generate rkey to store as ekey
+    rkey = generate_random_key();
+    # get dkey from masterpassword
+    dkey = generate_derived_key(password, salt)
+    ekey = encrypt_symm_key(rkey, dkey)
+    
+    myItems = (username, ekey, salt)
+    
+    sql = """INSERT INTO ekeys (
+        username, ekey, salt) VALUES (%s, %s, %s)"""
+    
+    cursor.execute(sql, myItems)
+    
+    conn.commit()
+    
+
 
     
     
