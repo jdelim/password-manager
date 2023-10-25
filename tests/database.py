@@ -11,21 +11,25 @@ def establish_conn(database, user, password, host, port):
     conn.autocommit = True
     return conn
 
-# check if username is unique
-# store in .JSON?
+# check if username is unique, returns bool
+def check_user(username, conn):
+    cursor = conn.cursor()
+    query = """SELECT username FROM ekeys WHERE username = '%s'"""
+    
+    print(cursor.execute(query, username))
+    
 
 # create db based on user's username
-# FIXME - usernames must be unique
+
 def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
     
     # sql statement
     sql = f'''CREATE DATABASE {name};'''
-    # execute statement
+    # execute and commit statement
     cursor.execute(sql)
-    # close connection?
-    #conn.close()
+    conn.commit()
     print("DB created successfully!")
 
 def create_table(conn):
@@ -98,7 +102,19 @@ def insert_ekey(username, password, conn):
     
     conn.commit()
     
+def insert_website(website, conn):
+    cursor = conn.cursor()
+    
+    sql = """ INSERT INTO credentials (
+        website) VALUES (%s)"""
+    pass
 
+def insert_username(username, conn):
+    pass
+
+def insert_password(password, conn):
+    pass
+    
 
     
     

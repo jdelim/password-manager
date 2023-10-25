@@ -11,21 +11,26 @@ def establish_conn(database, user, password, host, port):
     conn.autocommit = True
     return conn
 
-# check if username is unique
-# store in .JSON?
+# check if username is unique, returns bool
+def check_user(username, conn):
+    cursor = conn.cursor()
+    user_tuple = (f"{username}",)
+    query = """SELECT username FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, user_tuple) #FIXME
+    
 
 # create db based on user's username
-# FIXME - usernames must be unique
+
 def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
     
     # sql statement
     sql = f'''CREATE DATABASE {name};'''
-    # execute statement
+    # execute and commit statement
     cursor.execute(sql)
-    # close connection?
-    #conn.close()
+    conn.commit()
     print("DB created successfully!")
 
 def create_table(conn):
@@ -34,13 +39,13 @@ def create_table(conn):
     queries = (
     """
     CREATE TABLE credentials (
-	    credID SERIAL PRIMARY KEY,
+	    credID INTEGER PRIMARY KEY,
 	    website VARCHAR(500)
     )
     """,
     """ 
     CREATE TABLE usernames (
-	    userID SERIAL PRIMARY KEY,
+	    userID INTEGER PRIMARY KEY,
 	    username VARCHAR(500),
 	    credID INTEGER,
         FOREIGN KEY (credID) REFERENCES credentials(credID) 
@@ -49,7 +54,7 @@ def create_table(conn):
     
     """
     CREATE TABLE passwords (
-	    passID SERIAL PRIMARY KEY,
+	    passID INTEGER PRIMARY KEY,
 	    password VARCHAR(500),
 	    userID INTEGER,
         credID INTEGER,
@@ -84,7 +89,7 @@ def insert_ekey(username, password, conn):
     # generate salt to store
     salt = bcrypt.gensalt()
     # generate rkey to store as ekey
-    rkey = generate_random_key()
+    rkey = generate_random_key();
     # get dkey from masterpassword
     dkey = generate_derived_key(password, salt)
     ekey = encrypt_symm_key(rkey, dkey)
@@ -103,6 +108,7 @@ def insert_website(website, conn):
     
     sql = """ INSERT INTO credentials (
         website) VALUES (%s)"""
+    pass
 
 def insert_username(username, conn):
     pass
@@ -110,7 +116,6 @@ def insert_username(username, conn):
 def insert_password(password, conn):
     pass
     
-
 
     
     
