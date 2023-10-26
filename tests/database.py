@@ -14,10 +14,17 @@ def establish_conn(database, user, password, host, port):
 # check if username is unique, returns bool
 def check_user(username, conn):
     cursor = conn.cursor()
-    query = """SELECT username FROM ekeys WHERE username = '%s'"""
+    user_tuple = (username,)
+    query = """SELECT username FROM ekeys WHERE username = %s"""
     
-    print(cursor.execute(query, username))
-    
+    cursor.execute(query, user_tuple) #FIXME
+    row = cursor.fetchone() # ('test@gmail.com',) returns a tuple
+    # return true if row is None, meaning that username is unique
+    if (row is None):
+        return True
+    elif (len(row) == 1):
+        return False
+
 
 # create db based on user's username
 
