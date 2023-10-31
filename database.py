@@ -11,7 +11,7 @@ def establish_conn(database, user, password, host, port):
     conn.autocommit = True
     return conn
 
-# check if username is unique, returns bool
+# check if username is unique, returns bool. unique = true
 def check_user(username, conn):
     cursor = conn.cursor()
     user_tuple = (username,)
@@ -25,6 +25,29 @@ def check_user(username, conn):
     elif (len(row) == 1):
         return False
     
+def hex_to_bytes(hex): # use this when retrieving from postgres table
+    hex = hex[2:]
+    toBytes = bytes.fromhex(hex)
+    return toBytes
+    
+def retrieve_ekey(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT ekey FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    
+    if row is None:
+        return None
+    else:
+        ekey = ''
+        for item in row:
+            ekey = ekey + item
+        ekey = hex_to_bytes(ekey)
+        return ekey
+        
 def retrieve_salt(username, conn):
     cursor = conn.cursor()
     myTuple = (username,)
@@ -33,19 +56,37 @@ def retrieve_salt(username, conn):
     
     cursor.execute(query, myTuple)
     row = cursor.fetchone()
-    salt = ''
-    for item in row:
-        salt = salt + item
-    return salt
     
-def create_user(username, dkey, conn):
+    if row is None:
+        return None
+    else:
+        salt = ''
+        for item in row:
+            salt = salt + item
+        salt = salt[2:] #remove \x
+        #print(f"Salt is: {salt}")
+        salt = bytes.fromhex(salt) #convert hexadecimal to bytes
+        #print(f"Bytes salt is: {salt}")
+        return salt
+    
+def create_user(username, mPassword, conn):
     cursor = conn.cursor()
-    up_tuple = (username, dkey)
-    query = """CREATE USER %s WITH PASSWORD %s CREATEDB ENCRYPTED"""
     
-    cursor.execute(query, up_tuple)
+    # retrieve salt
+    salt = retrieve_salt(username, conn)
+    
+    # get dkey
+    dkey = generate_derived_key(mPassword, salt)
+    
+    # change to hexadecimal
+    dkey_hex = dkey.hex()
+    
+    # execute query
+    query = f"CREATE USER {username} WITH PASSWORD \'{dkey_hex}\'"
+    #query = "CREATE USER %s WITH PASSWORD %s"
+    cursor.execute(query)
     conn.commit()
-    pass
+    
 
 # create db based on user's username
 
@@ -53,8 +94,12 @@ def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
     
+    # tuple
+    name_tuple = (name, name)
+    
     # sql statement
-    sql = f'''CREATE DATABASE {name};'''
+    sql = f'''CREATE DATABASE {name} WITH OWNER {name}'''
+    #sql = """CREATE DATABASE (%s) WITH OWNER (%s)"""
     # execute and commit statement
     cursor.execute(sql)
     conn.commit()
@@ -66,7 +111,7 @@ def create_table(conn):
     queries = (
     """
     CREATE TABLE credentials (
-	    credID INTEGER PRIMARY KEY,
+	    credID SERIAL PRIMARY KEY,
 	    website VARCHAR(500)
     )
     """,
@@ -115,6 +160,7 @@ def insert_ekey(username, password, conn):
     
     # generate salt to store
     salt = bcrypt.gensalt()
+    #print(f"salt in insertekey func is: {salt}")
     # generate rkey to store as ekey
     rkey = generate_random_key();
     # get dkey from masterpassword
@@ -122,7 +168,7 @@ def insert_ekey(username, password, conn):
     ekey = encrypt_symm_key(rkey, dkey)
     
     myItems = (username, ekey, salt)
-    
+    #print(f"myItems tuples are: {myItems}")
     sql = """INSERT INTO ekeys (
         username, ekey, salt) VALUES (%s, %s, %s)"""
     
@@ -132,12 +178,20 @@ def insert_ekey(username, password, conn):
     
 def insert_website(website, conn):
     cursor = conn.cursor()
+    website_tuple = (website,)
     
     sql = """ INSERT INTO credentials (
         website) VALUES (%s)"""
-    pass
+    
+    cursor.execute(sql, website_tuple)
+    conn.commit()
 
 def insert_username(username, conn):
+    cursor = conn.cursor()
+    username_tuple = (username,)
+    
+    sql = """INSERT INTO usernames (
+            username, credID) """
     pass
 
 def insert_password(password, conn):

@@ -25,6 +25,29 @@ def check_user(username, conn):
     elif (len(row) == 1):
         return False
     
+def hex_to_bytes(hex): # use this when retrieving from postgres table
+    hex = hex[2:]
+    toBytes = bytes.fromhex(hex)
+    return toBytes
+    
+def retrieve_ekey(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT ekey FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    
+    if row is None:
+        return None
+    else:
+        ekey = ''
+        for item in row:
+            ekey = ekey + item
+        ekey = hex_to_bytes(ekey)
+        return ekey
+        
 def retrieve_salt(username, conn):
     cursor = conn.cursor()
     myTuple = (username,)
@@ -55,8 +78,12 @@ def create_user(username, mPassword, conn):
     # get dkey
     dkey = generate_derived_key(mPassword, salt)
     
+    # change to hexadecimal
+    dkey_hex = dkey.hex()
+    
     # execute query
-    query = f"CREATE USER {username} WITH PASSWORD \'{mPassword}\'"
+    query = f"CREATE USER {username} WITH PASSWORD \'{dkey_hex}\'"
+    #query = "CREATE USER %s WITH PASSWORD %s"
     cursor.execute(query)
     conn.commit()
     
@@ -67,8 +94,12 @@ def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
     
+    # tuple
+    name_tuple = (name, name)
+    
     # sql statement
-    sql = f'''CREATE DATABASE {name};'''
+    sql = f'''CREATE DATABASE {name} WITH OWNER {name}'''
+    #sql = """CREATE DATABASE (%s) WITH OWNER (%s)"""
     # execute and commit statement
     cursor.execute(sql)
     conn.commit()
@@ -80,7 +111,7 @@ def create_table(conn):
     queries = (
     """
     CREATE TABLE credentials (
-	    credID INTEGER PRIMARY KEY,
+	    credID SERIAL PRIMARY KEY,
 	    website VARCHAR(500)
     )
     """,
@@ -147,12 +178,20 @@ def insert_ekey(username, password, conn):
     
 def insert_website(website, conn):
     cursor = conn.cursor()
+    website_tuple = (website,)
     
     sql = """ INSERT INTO credentials (
         website) VALUES (%s)"""
-    pass
+    
+    cursor.execute(sql, website_tuple)
+    conn.commit()
 
 def insert_username(username, conn):
+    cursor = conn.cursor()
+    username_tuple = (username,)
+    
+    sql = """INSERT INTO usernames (
+            username, credID) """
     pass
 
 def insert_password(password, conn):
