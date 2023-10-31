@@ -17,7 +17,7 @@ def check_user(username, conn):
     user_tuple = (username,)
     query = """SELECT username FROM ekeys WHERE username = %s"""
     
-    cursor.execute(query, user_tuple) #FIXME
+    cursor.execute(query, user_tuple)
     row = cursor.fetchone() # ('test@gmail.com',) returns a tuple
     # return true if row is None, meaning that username is unique
     if (row is None):
@@ -25,6 +25,27 @@ def check_user(username, conn):
     elif (len(row) == 1):
         return False
     
+def retrieve_salt(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT salt FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    salt = ''
+    for item in row:
+        salt = salt + item
+    return salt
+    
+def create_user(username, dkey, conn):
+    cursor = conn.cursor()
+    up_tuple = (username, dkey)
+    query = """CREATE USER %s WITH PASSWORD %s CREATEDB ENCRYPTED"""
+    
+    cursor.execute(query, up_tuple)
+    conn.commit()
+    pass
 
 # create db based on user's username
 

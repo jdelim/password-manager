@@ -4,6 +4,7 @@ def main():
     # create derived key from a master password
     masterpwtest = "yes321"
     salt = bcrypt.gensalt() # store this along with pw
+    print(f"Salt is: {salt}")
     dkey = generate_derived_key(masterpwtest, salt)
     #print(f"Derived key is: {dkey}")
     

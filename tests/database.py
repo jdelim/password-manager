@@ -11,20 +11,55 @@ def establish_conn(database, user, password, host, port):
     conn.autocommit = True
     return conn
 
-# check if username is unique, returns bool
+# check if username is unique, returns bool. unique = true
 def check_user(username, conn):
     cursor = conn.cursor()
     user_tuple = (username,)
     query = """SELECT username FROM ekeys WHERE username = %s"""
     
-    cursor.execute(query, user_tuple) #FIXME
+    cursor.execute(query, user_tuple)
     row = cursor.fetchone() # ('test@gmail.com',) returns a tuple
     # return true if row is None, meaning that username is unique
     if (row is None):
         return True
     elif (len(row) == 1):
         return False
-
+    
+def retrieve_salt(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT salt FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    
+    if row is None:
+        return None
+    else:
+        salt = ''
+        for item in row:
+            salt = salt + item
+        salt = salt[2:] #remove \x
+        #print(f"Salt is: {salt}")
+        salt = bytes.fromhex(salt) #convert hexadecimal to bytes
+        #print(f"Bytes salt is: {salt}")
+        return salt
+    
+def create_user(username, mPassword, conn):
+    cursor = conn.cursor()
+    
+    # retrieve salt
+    salt = retrieve_salt(username, conn)
+    
+    # get dkey
+    dkey = generate_derived_key(mPassword, salt)
+    
+    # execute query
+    query = f"CREATE USER {username} WITH PASSWORD \'{mPassword}\'"
+    cursor.execute(query)
+    conn.commit()
+    
 
 # create db based on user's username
 
@@ -94,6 +129,7 @@ def insert_ekey(username, password, conn):
     
     # generate salt to store
     salt = bcrypt.gensalt()
+    #print(f"salt in insertekey func is: {salt}")
     # generate rkey to store as ekey
     rkey = generate_random_key();
     # get dkey from masterpassword
@@ -101,7 +137,7 @@ def insert_ekey(username, password, conn):
     ekey = encrypt_symm_key(rkey, dkey)
     
     myItems = (username, ekey, salt)
-    
+    #print(f"myItems tuples are: {myItems}")
     sql = """INSERT INTO ekeys (
         username, ekey, salt) VALUES (%s, %s, %s)"""
     
