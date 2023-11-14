@@ -94,6 +94,26 @@ def main():
                 decrypted_data = decrypt_data(enc_data, rkey2)
                 print(decrypted_data)
     
+    # print encrypted websites
+    #print(list_websites(conn))
+    
+    # decrypt encrypted websites
+    myWebsites = list_websites(conn) # encrypted websites
+    actualWebsites = [] # decrypted websites
+    for tupleWeb in myWebsites:
+        myWeb = tupleWeb[0]
+        decryptedWebsite = decrypt_data(myWeb, rkey2)
+        actualWebsites.append(decryptedWebsite)
+    print(actualWebsites)
+    
+    # find website
+    # while True:
+    #     myWebsite = input("Please enter a website previously entered: ")
+    #     if (find_website(myWebsite, conn) is None):
+    #         print("website not found!")
+    #     elif (find_website(myWebsite, conn) is not None):
+            
+    
     conn.close()
     
 if __name__ ==  "__main__":

@@ -117,7 +117,7 @@ def create_table(conn):
     """,
     """ 
     CREATE TABLE usernames (
-	    userID INTEGER PRIMARY KEY,
+	    userID SERIAL PRIMARY KEY,
 	    username VARCHAR(500),
 	    credID INTEGER,
         FOREIGN KEY (credID) REFERENCES credentials(credID) 
@@ -126,7 +126,7 @@ def create_table(conn):
     
     """
     CREATE TABLE passwords (
-	    passID INTEGER PRIMARY KEY,
+	    passID SERIAL PRIMARY KEY,
 	    password VARCHAR(500),
 	    userID INTEGER,
         credID INTEGER,
@@ -186,12 +186,35 @@ def insert_website(website, conn):
     cursor.execute(sql, website_tuple)
     conn.commit()
 
-def insert_username(username, conn):
+def list_websites(conn):
     cursor = conn.cursor()
+    query = """SELECT website FROM credentials"""
+    
+    cursor.execute(query)
+    row = cursor.fetchall()
+    
+    return row
+
+def find_website(listOfTuples, website):
+    #cursor = conn.cursor()
+    #myTuple = (website,)
+    #query = """SELECT website FROM credentials WHERE website = %s"""
+    
+    for myTuple in listOfTuples:
+        value = myTuple[0]
+        if value == website:
+            return value
+    return None
+
+def insert_username(username, website, conn):
+    cursor = conn.cursor()
+    
+    # find website to associate with username
+    
     username_tuple = (username,)
     
     sql = """INSERT INTO usernames (
-            username, credID) """
+            username, credID) VALUES"""
     pass
 
 def insert_password(password, conn):
