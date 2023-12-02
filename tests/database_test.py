@@ -23,7 +23,7 @@ def main():
     username = input("Please enter a username: ")
     
     create_db = False
-    
+
     while True:
         if (check_user(username, conn)):
             masterPassword = getpass.getpass(prompt="Enter your master password: ")
