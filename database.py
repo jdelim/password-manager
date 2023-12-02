@@ -162,7 +162,7 @@ def insert_ekey(username, password, conn):
     salt = bcrypt.gensalt()
     #print(f"salt in insertekey func is: {salt}")
     # generate rkey to store as ekey
-    rkey = generate_random_key();
+    rkey = generate_random_key()
     # get dkey from masterpassword
     dkey = generate_derived_key(password, salt)
     ekey = encrypt_symm_key(rkey, dkey)
