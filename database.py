@@ -6,27 +6,104 @@ from encryption import *
 
 # establish connection
 def establish_conn(database, user, password, host, port):
-    conn = psycopg2.connect(database = database, user = user, password = 
-                            password, host = host, port = port)
+    conn = psycopg2.connect(database = database, user = user, password = password, host = host, port = port)
     conn.autocommit = True
     return conn
 
-# check if username is unique
-# store in .JSON?
+# check if username is unique, returns bool. unique = true
+def check_user(username, conn):
+    cursor = conn.cursor()
+    user_tuple = (username,)
+    query = """SELECT username FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, user_tuple)
+    row = cursor.fetchone() # ('test@gmail.com',) returns a tuple
+    # return true if row is None, meaning that username is unique
+    if (row is None):
+        return True
+    elif (len(row) == 1):
+        #print("Username must be unique!")
+        return False
+    
+def hex_to_bytes(hex): # use this when retrieving from postgres table
+    hex = hex[2:]
+    toBytes = bytes.fromhex(hex)
+    return toBytes
+    
+def retrieve_ekey(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT ekey FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    
+    if row is None:
+        return None
+    else:
+        ekey = ''
+        for item in row:
+            ekey = ekey + item
+        ekey = hex_to_bytes(ekey)
+        return ekey
+        
+def retrieve_salt(username, conn):
+    cursor = conn.cursor()
+    myTuple = (username,)
+    
+    query = """SELECT salt FROM ekeys WHERE username = %s"""
+    
+    cursor.execute(query, myTuple)
+    row = cursor.fetchone()
+    
+    if row is None:
+        return None
+    else:
+        salt = ''
+        for item in row:
+            salt = salt + item
+        salt = salt[2:] #remove \x
+        #print(f"Salt is: {salt}")
+        salt = bytes.fromhex(salt) #convert hexadecimal to bytes
+        #print(f"Bytes salt is: {salt}")
+        return salt
+    
+def create_user(username, dkey, conn):
+    cursor = conn.cursor()
+    
+    # retrieve salt
+    #salt = retrieve_salt(username, conn)
+    
+    # get dkey
+    #dkey = generate_derived_key(mPassword, salt)
+    
+    # change to hexadecimal
+    dkey_hex = dkey.hex()
+    
+    # execute query
+    query = f"CREATE USER {username} WITH PASSWORD \'{dkey_hex}\'"
+    #query = "CREATE USER %s WITH PASSWORD %s"
+    cursor.execute(query)
+    conn.commit()
+    
 
 # create db based on user's username
-# FIXME - usernames must be unique
+
 def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
     
+    # tuple
+    name_tuple = (name, name)
+    
     # sql statement
-    sql = f'''CREATE DATABASE {name};'''
-    # execute statement
+    sql = f'''CREATE DATABASE {name} WITH OWNER {name}'''
+    #sql = """CREATE DATABASE (%s) WITH OWNER (%s)"""
+    # execute and commit statement
     cursor.execute(sql)
-    # close connection?
-    #conn.close()
-    print("DB created successfully!")
+    conn.commit()
+    #print("DB created successfully!")
 
 def create_table(conn):
     cursor = conn.cursor()
@@ -62,7 +139,7 @@ def create_table(conn):
     for query in queries:
         cursor.execute(query)
     conn.commit()
-    print("tables successfully created!")
+    #print("tables successfully created!")
     
 # create DB that stores usernames and EKEYS
 def create_ekey_storage(conn):
@@ -83,6 +160,7 @@ def insert_ekey(username, password, conn):
     
     # generate salt to store
     salt = bcrypt.gensalt()
+    #print(f"salt in insertekey func is: {salt}")
     # generate rkey to store as ekey
     rkey = generate_random_key()
     # get dkey from masterpassword
@@ -90,7 +168,7 @@ def insert_ekey(username, password, conn):
     ekey = encrypt_symm_key(rkey, dkey)
     
     myItems = (username, ekey, salt)
-    
+    #print(f"myItems tuples are: {myItems}")
     sql = """INSERT INTO ekeys (
         username, ekey, salt) VALUES (%s, %s, %s)"""
     
@@ -100,17 +178,48 @@ def insert_ekey(username, password, conn):
     
 def insert_website(website, conn):
     cursor = conn.cursor()
+    website_tuple = (website,)
     
     sql = """ INSERT INTO credentials (
         website) VALUES (%s)"""
+    
+    cursor.execute(sql, website_tuple)
+    conn.commit()
 
-def insert_username(username, conn):
+def list_websites(conn):
+    cursor = conn.cursor()
+    query = """SELECT website FROM credentials"""
+    
+    cursor.execute(query)
+    row = cursor.fetchall()
+    
+    return row
+
+def find_website(listOfTuples, website):
+    #cursor = conn.cursor()
+    #myTuple = (website,)
+    #query = """SELECT website FROM credentials WHERE website = %s"""
+    
+    for myTuple in listOfTuples:
+        value = myTuple[0]
+        if value == website:
+            return value
+    return None
+
+def insert_username(username, website, conn):
+    cursor = conn.cursor()
+    
+    # find website to associate with username
+    
+    username_tuple = (username,)
+    
+    sql = """INSERT INTO usernames (
+            username, credID) VALUES"""
     pass
 
 def insert_password(password, conn):
     pass
     
-
 
     
     
