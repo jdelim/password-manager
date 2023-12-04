@@ -6,8 +6,7 @@ from encryption import *
 
 # establish connection
 def establish_conn(database, user, password, host, port):
-    conn = psycopg2.connect(database = database, user = user, password = 
-                            password, host = host, port = port)
+    conn = psycopg2.connect(database = database, user = user, password = password, host = host, port = port)
     conn.autocommit = True
     return conn
 
@@ -23,7 +22,7 @@ def check_user(username, conn):
     if (row is None):
         return True
     elif (len(row) == 1):
-        print("Username must be unique!")
+        #print("Username must be unique!")
         return False
     
 def hex_to_bytes(hex): # use this when retrieving from postgres table

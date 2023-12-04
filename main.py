@@ -16,9 +16,10 @@ def main():
     }
     
     conn = establish_conn(**db_params)
+    login = False
     
     # list options
-    while True:
+    while True or (login is False):
         print("\nOptions:")
         print("1. Create Account")
         print("2. Login")
@@ -59,20 +60,18 @@ def main():
                     
                     # retrieve salt from table to use for dkey
                     salt = retrieve_salt(username, conn)
-                    dkey = generate_derived_key(m_password, salt)
-                    
-                    # create an ekey
-                    ekey = encrypt_symm_key(rkey, dkey)                    
+                    dkey = generate_derived_key(m_password, salt)                
                     
                     # create postgres user, database, and tables (postgres user)
                     create_user(username, dkey, conn)
                     create_database(username, conn)
                     
+                    
                     # use user conn before creating tables
                     user_db_params = {        
                         'host': 'localhost',
-                        'user': username,
-                        'database': username,
+                        'user': username.lower(),
+                        'database': username.lower(),
                         'password': dkey.hex(),
                         'port': '5432'
                     }
@@ -85,11 +84,43 @@ def main():
                     print("\nPlease enter a valid master password!")
             
         elif choice == "2":
-            break   
+            while True:    
+                # prompt for username
+                username = input("Please enter your username: ")
+                usernameValid = check_user(username, conn) # boolean
+                if (usernameValid is True):
+                    print("Username does not exist!")
+                    break
+                # prompt for password
+                master_password = getpass.getpass(prompt="Please enter your master password: ")
+                # stored_ekey = retrieve_ekey(username, conn)
+                # stored_ekey = hex_to_bytes(stored_ekey) # convert from table
+                # use derived key to attempt login
+                stored_salt = retrieve_salt(username, conn) # did not need to do hex to bytes here idk why
+
+                attempt_dkey = generate_derived_key(master_password, stored_salt)
+                
+                # attempt login to postgres user 
+                try:
+                    user_db_params = {        
+                        'host': 'localhost',
+                        'user': username.lower(),
+                        'database': username.lower(),
+                        'password': attempt_dkey.hex(),
+                        'port': '5432'
+                    }
+                    user_conn = establish_conn(**user_db_params)
+                    login = True # to break out of outer while loop
+                    break # break out of inner while loop
+                except psycopg2.Error as e:
+                    print("Invalid master password!")
+                
         elif choice == "3":
             print("Exiting. Goodbye!")
-            break
-    
+            exit(1)
+            
+        # login flow
+        print("Login successful!")
 
 if __name__ == "__main__":
     main()
