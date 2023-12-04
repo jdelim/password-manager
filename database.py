@@ -23,6 +23,7 @@ def check_user(username, conn):
     if (row is None):
         return True
     elif (len(row) == 1):
+        print("Username must be unique!")
         return False
     
 def hex_to_bytes(hex): # use this when retrieving from postgres table
@@ -69,14 +70,14 @@ def retrieve_salt(username, conn):
         #print(f"Bytes salt is: {salt}")
         return salt
     
-def create_user(username, mPassword, conn):
+def create_user(username, dkey, conn):
     cursor = conn.cursor()
     
     # retrieve salt
-    salt = retrieve_salt(username, conn)
+    #salt = retrieve_salt(username, conn)
     
     # get dkey
-    dkey = generate_derived_key(mPassword, salt)
+    #dkey = generate_derived_key(mPassword, salt)
     
     # change to hexadecimal
     dkey_hex = dkey.hex()
@@ -103,7 +104,7 @@ def create_database(name, conn):
     # execute and commit statement
     cursor.execute(sql)
     conn.commit()
-    print("DB created successfully!")
+    #print("DB created successfully!")
 
 def create_table(conn):
     cursor = conn.cursor()
@@ -139,7 +140,7 @@ def create_table(conn):
     for query in queries:
         cursor.execute(query)
     conn.commit()
-    print("tables successfully created!")
+    #print("tables successfully created!")
     
 # create DB that stores usernames and EKEYS
 def create_ekey_storage(conn):

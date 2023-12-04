@@ -24,7 +24,33 @@ class PasswordManagerCLI:
 [_____________[_______]--'------''------'--[_______]_____________]""")
         
     def create_account_flow(self):
-        print("Creating a new account")
+        # ask user to create a username with PostgreSQL user reqs
+        username = input("Please enter a username: ")
+        userBool = self.filter_username(username)
+        pass
+        # ask user to create and confirm a master password
+        
+        # welcome message
+        
+    def filter_username(self, username):
+         # Check if the username starts with a letter or underscore
+        if not re.match(r'^[a-zA-Z_]', username):
+            print("Username must start with a letter (a-z, A-Z) or an underscore (_).")
+            return False
+        
+        # Check if subsequent characters are letters, numbers, or underscores
+        if not re.match(r'^[a-zA-Z0-9_]*$', username):
+            print("Username must contain only letters, numbers, or underscores.")
+            return False
+        
+        # Check if the length of the username is within the limit
+        if len(username) > 63:
+            print("Username exceeds the maximum length of 63 characters.")
+            return False
+
+        # All requirements met
+        return True
+        
         
         
     def login_flow(self):

@@ -1,13 +1,15 @@
 import re
 
 class CommandHandler:
-    def show_encrypt_info(self):
+    def show_encrypt_info(self): # explains encryption process
         pass
 
-    def show_decrypt_info(self):
+    def show_decrypt_info(self): # explains decryption process
         pass
 
-
+    def password_explain(self): # explains importance of strong passwords
+        pass
+    
 def password_suggest(password):
         # Define the criteria for a strong password
         min_length = 12
@@ -41,7 +43,7 @@ def password_suggest(password):
         return is_strong, suggestions
         
 def check_password_strength(password):
-            # Check for at least one digit
+    # Check for at least one digit
     has_digit = re.search(r'\d', password)
 
     # Check for at least one symbol
@@ -57,23 +59,21 @@ def check_password_strength(password):
     min_length = 12
     is_length_valid = len(password) >= min_length
 
-    # Store the results in a tuple
-    results = (
-        has_digit and has_symbol and has_uppercase and has_lowercase and is_length_valid,
-        []
-    )
-
-    # Provide suggestions if the password is not strong
+    # Print suggestions if the password is not strong
     if not has_digit:
-        results[1].append("Add at least one digit.")
+        print("Add at least one digit.")
     if not has_uppercase:
-        results[1].append("Add at least one uppercase letter.")
+        print("Add at least one uppercase letter.")
     if not has_lowercase:
-        results[1].append("Add at least one lowercase letter.")
+        print("Add at least one lowercase letter.")
     if not has_symbol:
-        results[1].append("Add at least one symbol.")
+        print("Add at least one symbol.")
     if not is_length_valid:
-        results[1].append(f"Make sure the password is at least {min_length} characters long.")
+        print(f"Make sure the password is at least {min_length} characters long.")
 
-    return results
+    # Return True if all requirements are met, False otherwise
+    return has_digit and has_symbol and has_uppercase and has_lowercase and is_length_valid
 
+if __name__ == "__main__":
+    #check_password_strength("Test1233412124!!!!!")
+    pass
