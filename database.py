@@ -175,16 +175,6 @@ def insert_ekey(username, password, conn):
     cursor.execute(sql, myItems)
     
     conn.commit()
-    
-def insert_website(website, conn):
-    cursor = conn.cursor()
-    website_tuple = (website,)
-    
-    sql = """ INSERT INTO credentials (
-        website) VALUES (%s)"""
-    
-    cursor.execute(sql, website_tuple)
-    conn.commit()
 
 def list_websites(conn):
     cursor = conn.cursor()
@@ -206,19 +196,41 @@ def find_website(listOfTuples, website):
             return value
     return None
 
-def insert_username(username, website, conn):
+def insert_website(website, conn):
+    cursor = conn.cursor()
+    website_tuple = (website,)
+    
+    sql = """ INSERT INTO credentials (
+        website) VALUES (%s) RETURNING credID"""
+    
+    cursor.execute(sql, website_tuple)
+    cred_id = cursor.fetchone()[0]
+    conn.commit()
+    return cred_id
+
+def insert_username(username, credID, conn):
     cursor = conn.cursor()
     
-    # find website to associate with username
-    
-    username_tuple = (username,)
+    username_tuple = (username, credID)
     
     sql = """INSERT INTO usernames (
-            username, credID) VALUES"""
-    pass
+            username, credID) VALUES (%s, %s) RETURNING userID"""
 
-def insert_password(password, conn):
-    pass
+    cursor.execute(sql, username_tuple)
+    user_id = cursor.fetchone()[0]
+    conn.commit()
+    return user_id
+
+def insert_password(password, credID, userID, conn):
+    cursor = conn.cursor()
+    
+    password_tuple = (password, credID, userID)
+    
+    sql = """INSERT INTO passwords (
+        password, userID, credID) VALUES (%s, %s, %s)"""
+    
+    cursor.execute(sql, password_tuple)
+    conn.commit()
     
 
     
