@@ -2,6 +2,7 @@ from encryption import *
 from database import *
 from ui import *
 from education import *
+from password_generation import *
 
 def main():
     pwManager = PasswordManagerCLI()
@@ -19,7 +20,7 @@ def main():
     login = False
     
     # list options
-    while True or (login is False):
+    while (login is False):
         print("\nOptions:")
         print("1. Create Account")
         print("2. Login")
@@ -38,10 +39,13 @@ def main():
                 validUser = pwManager.filter_username(username)
                 uniqueUser = check_user(username, conn)
                 
+                if (uniqueUser is False):
+                    print("Username must be unique!")
+                
                 if (validUser == True) and (uniqueUser == True):
                     print("Username is valid!")
                     break
-            
+                
             # master password creation
             print("Your master password should be at least 12 characters, with at least 1 uppercase and lowercase letter, 1 symbol, and 1 digit.")
             while True:
@@ -114,13 +118,82 @@ def main():
                     break # break out of inner while loop
                 except psycopg2.Error as e:
                     print("Invalid master password!")
-                
+                    break
         elif choice == "3":
             print("Exiting. Goodbye!")
             exit(1)
+        else:
+            print("Invalid choice!")
             
-        # login flow
-        print("Login successful!")
+            
+    # login flow
+    print("Login successful!")
+    
+    while True:
+        print(f"\nWelcome {username}!")
+        print("1. Add a password")
+        print("2. Generate a random password")
+        print("3. Display passwords")
+        print("q. Log out")
+        
+        choice2 = input("Please select a choice (1, 2, or 3): ")
+            # retrieve info from ekeys table
+        db_params = {        
+            'host': 'localhost',
+            'user': 'postgres',
+            'database': 'ekeys',
+            'password': 'password',
+            'port': '5432'
+        }
+        
+        conn = establish_conn(**db_params)
+        salt = retrieve_salt(username, conn)
+        ekey = retrieve_ekey(username, conn)
+        dkey = generate_derived_key(master_password, salt)
+        rkey = decrypt_symm_key(ekey, dkey)
+            
+        if choice2 == "1":
+
+            # establish user conn
+            user_db_params = {        
+                'host': 'localhost',
+                'user': username.lower(),
+                'database': username.lower(),
+                'password': dkey.hex(),
+                'port': '5432'
+            }
+            
+            user_conn = establish_conn(**user_db_params)
+            
+            # ask for website
+            website = input("Please enter the name of the website for your password: ")
+            enc_website = encrypt_data(website, rkey)
+            credID = insert_website(enc_website, user_conn)
+            
+            # ask for username
+            table_username = input("Please enter the username for the website: ")
+            enc_username = encrypt_data(table_username, rkey)
+            userID = insert_username(enc_username, credID, user_conn)
+            
+            # ask for password
+            table_password = input("Please enter the password for your entered username: ")
+            enc_password = encrypt_data(table_password, rkey)
+            insert_password(enc_password, credID, userID, user_conn)
+            
+            print(f"Password for user {table_username} in website {website} created!")
+            
+        elif choice2 == "2": # generate random password
+            random_pass = generate_random_password(12)
+            print(f"Your random password is: {random_pass}")
+            
+        elif choice2 == "3": # display passwords
+            fetched_info = fetch_and_decrypt_data(rkey, user_conn)
+            display_credentials_info(fetched_info)
+        elif choice2 == "q":
+            print("Logging out...")
+            exit(1)
+            
+        
 
 if __name__ == "__main__":
     main()

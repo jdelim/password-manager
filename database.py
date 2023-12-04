@@ -232,6 +232,51 @@ def insert_password(password, credID, userID, conn):
     cursor.execute(sql, password_tuple)
     conn.commit()
     
+def fetch_and_decrypt_data(rkey, conn):
+    query = """
+        SELECT c.credID, c.website, u.username, p.password
+        FROM credentials c
+        LEFT JOIN usernames u ON c.credID = u.credID
+        LEFT JOIN passwords p ON u.userID = p.userID
+        ORDER BY c.credID, u.userID;
+    """
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            credentials_info = {}
+
+            for row in rows:
+                credID, website, username, password = row
+                if credID not in credentials_info:
+                    website = hex_to_bytes(website)
+                    credentials_info[credID] = {'website': decrypt_data(website, rkey), 'usernames': []}
+
+                if username and password:
+                    username = hex_to_bytes(username)
+                    password = hex_to_bytes(password)
+                    decrypted_username = decrypt_data(username, rkey)
+                    decrypted_password = decrypt_data(password, rkey)
+                    credentials_info[credID]['usernames'].append({'username': decrypted_username, 'password': decrypted_password})
+
+            return credentials_info
+        
+    except psycopg2.Error as e:
+        print(f"Error executing SQL query: {e}")
+        return None
+    
+def display_credentials_info(credentials_info):
+    if not credentials_info:
+        print("No data to display.")
+        return
+
+    for credID, data in credentials_info.items():
+        print(f"Website: {data['website']}")
+        for user_data in data['usernames']:
+            print(f"  Username: {user_data['username']}, Password: {user_data['password']}")
+
 
     
     

@@ -40,5 +40,9 @@ def main():
     enc_password = encrypt_data(password, rkey)
     insert_password(enc_password, credID, userID, conn)
     
+    fetched_info = fetch_and_decrypt_data(rkey, conn)
+    
+    display_credentials_info(fetched_info)
+    
 if __name__ == "__main__":
     main()
