@@ -6,6 +6,7 @@ from password_generation import *
 
 def main():
     pwManager = PasswordManagerCLI()
+    myCommands = CommandHandler()
     
     # set up conn to postgres
     db_params = {        
@@ -24,10 +25,10 @@ def main():
         print("\nOptions:")
         print("1. Create Account")
         print("2. Login")
-        print("3. Exit")
-        # FIXME put show all commands command
+        print("/h to show other commands")
+        print("q. Exit")
         
-        choice = input("Enter your choice (1, 2, or 3): ")
+        choice = input("Enter your choice: ")
         
         if choice == "1":
             print("Usernames must only contain numbers, letters, or underscores, and must start with a letter or underscore.")
@@ -93,7 +94,7 @@ def main():
                 username = input("Please enter your username: ")
                 usernameValid = check_user(username, conn) # boolean
                 if (usernameValid is True):
-                    print("Username does not exist!")
+                    print("\nUsername does not exist!")
                     break
                 # prompt for password
                 master_password = getpass.getpass(prompt="Please enter your master password: ")
@@ -117,26 +118,32 @@ def main():
                     login = True # to break out of outer while loop
                     break # break out of inner while loop
                 except psycopg2.Error as e:
-                    print("Invalid master password!")
+                    print("\nInvalid master password!")
                     break
-        elif choice == "3":
-            print("Exiting. Goodbye!")
+                
+        elif choice == "/h":
+            myCommands.show_all_commands()
+        elif choice == "q":
+            print("\nExiting. Goodbye!")
             exit(1)
+        elif (myCommands.commands(choice)):
+            continue
         else:
-            print("Invalid choice!")
+            print("\nInvalid choice!")
             
             
     # login flow
-    print("Login successful!")
+    print("\nLogin successful!")
     
     while True:
         print(f"\nWelcome {username}!")
         print("1. Add a password")
         print("2. Generate a random password")
         print("3. Display passwords")
+        print("/h for more commands")
         print("q. Log out")
         
-        choice2 = input("Please select a choice (1, 2, or 3): ")
+        choice2 = input("Please select a choice: ")
             # retrieve info from ekeys table
         db_params = {        
             'host': 'localhost',
@@ -189,9 +196,17 @@ def main():
         elif choice2 == "3": # display passwords
             fetched_info = fetch_and_decrypt_data(rkey, user_conn)
             display_credentials_info(fetched_info)
+            
+        elif choice2 == "/h":
+            myCommands.show_all_commands()
+        elif (myCommands.commands(choice2)):
+            continue
         elif choice2 == "q":
             print("Logging out...")
             exit(1)
+            
+        else:
+            print("Invalid choice!")
             
         
 
