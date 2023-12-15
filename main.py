@@ -3,18 +3,22 @@ from database import *
 from ui import *
 from education import *
 from password_generation import *
+from config import read_config
 
 def main():
     pwManager = PasswordManagerCLI()
     myCommands = CommandHandler()
     
+    # use config params for 'admin' user
+    config_params = read_config()
+    
     # set up conn to postgres
     db_params = {        
-        'host': 'localhost',
-        'user': 'postgres',
-        'database': 'ekeys',
-        'password': 'password',
-        'port': '5432'
+        'host': config_params['host'],
+        'user': config_params['user'],
+        'database': config_params['database'],
+        'password': config_params['password'],
+        'port': config_params['port']
     }
     
     conn = establish_conn(**db_params)
@@ -74,11 +78,11 @@ def main():
                     
                     # use user conn before creating tables
                     user_db_params = {        
-                        'host': 'localhost',
+                        'host': config_params['host'],
                         'user': username.lower(),
                         'database': username.lower(),
                         'password': dkey.hex(),
-                        'port': '5432'
+                        'port': config_params['port']
                     }
                     user_conn = establish_conn(**user_db_params)
                     create_table(user_conn) # user can create tables since he is the owner of database
@@ -108,11 +112,11 @@ def main():
                 # attempt login to postgres user 
                 try:
                     user_db_params = {        
-                        'host': 'localhost',
+                        'host': config_params['host'],
                         'user': username.lower(),
                         'database': username.lower(),
                         'password': attempt_dkey.hex(),
-                        'port': '5432'
+                        'port': config_params['port']
                     }
                     user_conn = establish_conn(**user_db_params)
                     login = True # to break out of outer while loop
@@ -146,13 +150,14 @@ def main():
         print("q. Log out")
         
         choice2 = input("\nPlease select a choice: ")
-            # retrieve info from ekeys table
+        
+        # retrieve info from ekeys table
         db_params = {        
-            'host': 'localhost',
-            'user': 'postgres',
-            'database': 'ekeys',
-            'password': 'password',
-            'port': '5432'
+            'host': config_params['host'],
+            'user': config_params['user'],
+            'database': config_params['database'],
+            'password': config_params['password'],
+            'port': config_params['port']
         }
         
         conn = establish_conn(**db_params)
@@ -165,11 +170,11 @@ def main():
 
             # establish user conn
             user_db_params = {        
-                'host': 'localhost',
+                'host': config_params['host'],
                 'user': username.lower(),
                 'database': username.lower(),
                 'password': dkey.hex(),
-                'port': '5432'
+                'port': config_params['port']
             }
             
             user_conn = establish_conn(**user_db_params)
