@@ -140,10 +140,12 @@ def main():
         print("1. Add a password")
         print("2. Generate a random password")
         print("3. Display passwords")
+        print("4. Edit a credential")
+        print("5. Delete a credential")
         print("/h for more commands")
         print("q. Log out")
         
-        choice2 = input("Please select a choice: ")
+        choice2 = input("\nPlease select a choice: ")
             # retrieve info from ekeys table
         db_params = {        
             'host': 'localhost',
@@ -190,17 +192,29 @@ def main():
             print(f"Password for user {table_username} in website {website} created!")
             
         elif choice2 == "2": # generate random password
+            print()
             random_pass = generate_random_password(12)
             print(f"Your random password is: {random_pass}")
             
         elif choice2 == "3": # display passwords
+            print()
             fetched_info = fetch_and_decrypt_data(rkey, user_conn)
             display_credentials_info(fetched_info)
             
+        elif choice2 == "4": # edit a cred
+            print()
+            edit_credentials(rkey, user_conn)
+            
+        elif choice2 == "5": # delete a cred
+            print()
+            delete_credentials(rkey, user_conn)
+        
         elif choice2 == "/h":
             myCommands.show_all_commands()
+            
         elif (myCommands.commands(choice2)):
             continue
+        
         elif choice2 == "q":
             print("Logging out...")
             exit(1)

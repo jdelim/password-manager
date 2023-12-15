@@ -30,4 +30,5 @@ def generate_random_password(length=12):
     return password
 
 if __name__ == "__main__":
-    print(generate_random_password(12))
+    #print(generate_random_password(12))
+    pass

@@ -2,8 +2,6 @@ import psycopg2
 import bcrypt
 from encryption import *
 
-# FIXME - will establish class later
-
 # establish connection
 def establish_conn(database, user, password, host, port):
     conn = psycopg2.connect(database = database, user = user, password = password, host = host, port = port)
@@ -273,11 +271,112 @@ def display_credentials_info(credentials_info):
         return
 
     for credID, data in credentials_info.items():
-        print(f"Website: {data['website']}")
+        print(f"{credID}. Website: {data['website']}")
         for user_data in data['usernames']:
-            print(f"  Username: {user_data['username']}, Password: {user_data['password']}")
+            print(f"  Username: {user_data['username']}, Password: {user_data['password']}\n")
 
+def edit_credentials(rkey, conn):
+    # display current credentials
+    current_credentials = fetch_and_decrypt_data(rkey, conn)
+    display_credentials_info(current_credentials)
+    
+    try:
+        # ask user to select a credID to edit
+        selected_credID = int(input("Please select a credential number to edit, or 'q' to go back: "))
+    except ValueError:
+        print("Invalid input. Please enter a valid integer.")
+        return
+    
+    # query to check if the entered credID exists in the credentials table
+    check_cred_query = "SELECT 1 FROM credentials WHERE credID = %s LIMIT 1;"
+    
+    try:
+        with conn.cursor() as cursor:
+            # execute the query with the selected_credID
+            cursor.execute(check_cred_query, (selected_credID,))
+            
+            # fetchone returns None if no match is found
+            cred_exists = cursor.fetchone() is not None
 
+            # if credID exists, proceed with the edit
+            if cred_exists:
+                # Rest of the code...
+                new_website = input("Enter a new website: ")
+                new_username = input("Enter a new username: ")
+                new_password = input("Enter new password: ")
+
+                # encrypt data
+                enc_website = encrypt_data(new_website, rkey)
+                enc_username = encrypt_data(new_username, rkey)
+                enc_password = encrypt_data(new_password, rkey)
+
+                # update database query
+                update_query = """
+                    UPDATE credentials SET website = %s WHERE credID = %s;
+                    UPDATE usernames SET username = %s WHERE credID = %s;
+                    UPDATE passwords SET password = %s WHERE userID IN (SELECT userID FROM usernames WHERE credID = %s);
+                """
+
+                with conn.cursor() as cursor:
+                    cursor.execute(update_query, (enc_website, selected_credID, enc_username, selected_credID, enc_password, selected_credID))
+                    conn.commit()
+
+                print("Credentials successfully updated!")
+
+            else:
+                print("Invalid credential number selected!")
+
+    except psycopg2.Error as e:
+        print(f"Error executing SQL query: {e}")
+        
+def delete_credentials(rkey, conn):
+    # display credentials
+    current_credentials = fetch_and_decrypt_data(rkey, conn)
+    display_credentials_info(current_credentials)
     
+    try: 
+        # ask user for credID
+        credID_to_delete = int(input("Please select a credential number to delete, or 'q' to go back: "))
+    except ValueError:
+        print("Invalid input. Please enter a valid integer.")
+        return
     
+    # Check if credID is valid
+    check_query = """
+        SELECT COUNT(*) FROM credentials WHERE credID = %s;
+    """
+    
+    with conn.cursor() as cursor:
+        cursor.execute(check_query, (credID_to_delete,))
+        count = cursor.fetchone()[0]
+        
+    if count > 0: # credID exists
+        # Delete from passwords and usernames first
+        delete_query_passwords = """
+            DELETE FROM passwords WHERE userID IN (SELECT userID FROM usernames WHERE credID = %s);
+        """
+        
+        delete_query_usernames = """
+            DELETE FROM usernames WHERE credID = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(delete_query_passwords, (credID_to_delete,))
+            cursor.execute(delete_query_usernames, (credID_to_delete,))
+            conn.commit()
+
+        # Then delete from credentials
+        delete_query_credentials = """
+            DELETE FROM credentials WHERE credID = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(delete_query_credentials, (credID_to_delete,))
+            conn.commit()
+
+        print(f"Credential with cred_id {credID_to_delete} deleted successfully!")
+
+        
+    else:
+        print("Invalid credential number or credential not found!")
     

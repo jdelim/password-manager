@@ -1,6 +1,10 @@
 import re
 import getpass
 
+# note: mainly used for testing as issues came up trying
+# to put account creation and login flows in their own functions.
+# can modify later! but enjoy the castle :) 
+
 class PasswordManagerCLI:
     def __init__(self):
         print(r"""
@@ -50,8 +54,6 @@ class PasswordManagerCLI:
 
         # All requirements met
         return True
-        
-        
         
     def login_flow(self):
         print("Logging in")
