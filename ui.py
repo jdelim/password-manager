@@ -3,7 +3,7 @@ import getpass
 
 # note: mainly used for testing as issues came up trying
 # to put account creation and login flows in their own functions.
-# can modify later! but enjoy the castle :) 
+# can modify later to clean up main.py! but enjoy the castle :) 
 
 class PasswordManagerCLI:
     def __init__(self):

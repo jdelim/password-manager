@@ -20,7 +20,6 @@ def check_user(username, conn):
     if (row is None):
         return True
     elif (len(row) == 1):
-        #print("Username must be unique!")
         return False
     
 def hex_to_bytes(hex): # use this when retrieving from postgres table
@@ -62,32 +61,21 @@ def retrieve_salt(username, conn):
         for item in row:
             salt = salt + item
         salt = salt[2:] #remove \x
-        #print(f"Salt is: {salt}")
         salt = bytes.fromhex(salt) #convert hexadecimal to bytes
-        #print(f"Bytes salt is: {salt}")
         return salt
     
 def create_user(username, dkey, conn):
     cursor = conn.cursor()
-    
-    # retrieve salt
-    #salt = retrieve_salt(username, conn)
-    
-    # get dkey
-    #dkey = generate_derived_key(mPassword, salt)
     
     # change to hexadecimal
     dkey_hex = dkey.hex()
     
     # execute query
     query = f"CREATE USER {username} WITH PASSWORD \'{dkey_hex}\'"
-    #query = "CREATE USER %s WITH PASSWORD %s"
     cursor.execute(query)
     conn.commit()
     
-
 # create db based on user's username
-
 def create_database(name, conn):
     # create cursor
     cursor = conn.cursor()
@@ -97,11 +85,9 @@ def create_database(name, conn):
     
     # sql statement
     sql = f'''CREATE DATABASE {name} WITH OWNER {name}'''
-    #sql = """CREATE DATABASE (%s) WITH OWNER (%s)"""
     # execute and commit statement
     cursor.execute(sql)
     conn.commit()
-    #print("DB created successfully!")
 
 def create_table(conn):
     cursor = conn.cursor()
@@ -137,7 +123,6 @@ def create_table(conn):
     for query in queries:
         cursor.execute(query)
     conn.commit()
-    #print("tables successfully created!")
     
 # create DB that stores usernames and EKEYS
 def create_ekey_storage(conn):
@@ -158,41 +143,22 @@ def insert_ekey(username, password, conn):
     
     # generate salt to store
     salt = bcrypt.gensalt()
-    #print(f"salt in insertekey func is: {salt}")
+    
     # generate rkey to store as ekey
     rkey = generate_random_key()
+    
     # get dkey from masterpassword
     dkey = generate_derived_key(password, salt)
     ekey = encrypt_symm_key(rkey, dkey)
     
     myItems = (username, ekey, salt)
-    #print(f"myItems tuples are: {myItems}")
+    
     sql = """INSERT INTO ekeys (
         username, ekey, salt) VALUES (%s, %s, %s)"""
     
     cursor.execute(sql, myItems)
     
     conn.commit()
-
-def list_websites(conn):
-    cursor = conn.cursor()
-    query = """SELECT website FROM credentials"""
-    
-    cursor.execute(query)
-    row = cursor.fetchall()
-    
-    return row
-
-def find_website(listOfTuples, website):
-    #cursor = conn.cursor()
-    #myTuple = (website,)
-    #query = """SELECT website FROM credentials WHERE website = %s"""
-    
-    for myTuple in listOfTuples:
-        value = myTuple[0]
-        if value == website:
-            return value
-    return None
 
 def insert_website(website, conn):
     cursor = conn.cursor()

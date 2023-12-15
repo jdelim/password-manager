@@ -28,7 +28,3 @@ def generate_random_password(length=12):
     password = ''.join(password_list)
 
     return password
-
-if __name__ == "__main__":
-    #print(generate_random_password(12))
-    pass
