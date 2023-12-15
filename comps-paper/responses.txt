@@ -1,0 +1,15 @@
+What difficulties did you have when navigating the password manager? (Please also list any bugs/errors you encountered here)
+Have the option to go back to certain parts of the program (movability)!
+Tell you what your missing in master password, general inconvenience of CLI, random password generator already inserted into adding a password, cluttered line in print statements
+
+What did you enjoy about using the password manager?
+Generating random passwords
+quick in general 
+
+Which aspects of password managers (e.g. the encryption process, database management, etc.) are you interested in learning about how it works?
+How the encryption works (security), random password generation
+database management, encryption (salting)
+
+Finally, what features would you like to see? (ex: ability to organize, add notes, check for repeated passwords, etc.)
+Two factor authentication, being able to go back to previous options, sync across multiple devices (cloud storage), autofill for websites, update passwords already stored (syncing with websites possibly), location access (ex: PNB digital key)
+GUI (future work), checking for repeated passwords, password hints in notes
