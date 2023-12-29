@@ -122,7 +122,3 @@ def check_password_strength(password):
 
     # Return True if all requirements are met, False otherwise
     return has_digit and has_symbol and has_uppercase and has_lowercase and is_length_valid
-
-if __name__ == "__main__":
-    #check_password_strength("Test1233412124!!!!!")
-    pass
